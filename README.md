@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Vehicle Portfolio | Anuthep</title>
+<title>3D Vehicle Portfolio & AR | Anuthep</title>
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
@@ -14,6 +14,10 @@
         color:#e5e7eb;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
+
+    /* Tab Switcher Styles */
+    .tab-content { display: none; width: 100%; height: 100%; position: absolute; inset: 0; }
+    .tab-content.active { display: block; }
 
     #canvas-container {
         position:fixed; inset:0; z-index:0;
@@ -95,6 +99,7 @@
     }
 </style>
 
+<!-- Import Map for Three.js -->
 <script type="importmap">
 {
   "imports": {
@@ -103,152 +108,231 @@
   }
 }
 </script>
+
+<!-- Scripts for AR.js -->
+<script src="https://cdn.jsdelivr.net/npm/aframe@1.6.0/dist/aframe-master.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.8/aframe/build/aframe-ar.js"></script>
+
+<script>
+  // AR.js Component 'fit'
+  AFRAME.registerComponent('fit', {
+    init() {
+      this.el.addEventListener('model-loaded', e => {
+        const model = e.detail.model, THREE = AFRAME.THREE;
+        const box = new THREE.Box3().setFromObject(model);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        model.position.set(-center.x, -box.min.y, -center.z);
+        this.el.object3D.scale.setScalar(1.8 / Math.max(size.x, size.y, size.z));
+        if (model.animations.length) {
+          this.mixer = new THREE.AnimationMixer(model);
+          this.mixer.clipAction(model.animations[0]).play();
+        }
+      });
+    },
+    tick(time, dt) { 
+      if (this.mixer) this.mixer.update(dt / 1000); 
+    }
+  });
+</script>
 </head>
 
 <body class="select-none">
-<div id="canvas-container"></div>
-<div class="scanlines"></div>
-<div class="vignette"></div>
 
-<div class="fixed inset-0 z-10 pointer-events-none p-3 md:p-5">
-    <!-- LEFT UI -->
-    <aside class="sidebar pointer-events-auto w-[350px] h-full flex flex-col gap-3">
-        <header class="glass rounded-2xl p-5 relative overflow-hidden">
-            <span class="corner tl"></span><span class="corner tr"></span>
-            <span class="corner bl"></span><span class="corner br"></span>
+  <!-- TOP MODE SWITCHER NAVBAR -->
+  <nav class="fixed top-3 left-1/2 -translate-x-1/2 z-50 glass rounded-full p-1.5 flex gap-2 border border-emerald-500/30">
+    <button id="nav-3d" onclick="switchTab('3d')" class="btn active px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2">
+      <span>🎨</span> 3D Portfolio
+    </button>
+    <button id="nav-ar" onclick="switchTab('ar')" class="btn px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2">
+      <span>📷</span> AR Camera Mode
+    </button>
+  </nav>
 
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center
-                    bg-emerald-950/70 border border-emerald-500/40 text-emerald-300
-                    font-black tracking-widest shadow-[0_0_25px_rgba(16,185,129,.12)]">
-                    AT
-                </div>
-                <div class="min-w-0">
-                    <div class="tiny mono text-emerald-400 mb-1">3D VEHICLE PORTFOLIO</div>
-                    <h1 class="font-bold text-lg text-white truncate">Anuthep Toeiliang</h1>
-                    <p class="text-[11px] text-slate-400">Hard-Surface • Military • PBR</p>
-                </div>
-            </div>
+  <!-- TAB 1: 3D PORTFOLIO -->
+  <div id="tab-3d" class="tab-content active">
+    <div id="canvas-container"></div>
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
 
-            <p class="mt-4 text-xs leading-relaxed text-slate-300">
-                แฟ้มผลงานโมเดล 3D เน้นงานยานพาหนะ ฮาร์ดเซอเฟส
-                โครงสร้างเชิงกล และวัสดุ PBR พร้อมระบบแสดงผลแบบ Interactive
-            </p>
+    <div class="fixed inset-0 z-10 pointer-events-none p-3 md:p-5 pt-16">
+        <!-- LEFT UI -->
+        <aside class="sidebar pointer-events-auto w-[350px] h-full flex flex-col gap-3">
+            <header class="glass rounded-2xl p-5 relative overflow-hidden">
+                <span class="corner tl"></span><span class="corner tr"></span>
+                <span class="corner bl"></span><span class="corner br"></span>
 
-            <div class="mt-4 flex gap-2">
-                <div class="glass-soft rounded-lg px-3 py-2 flex-1">
-                    <div class="tiny mono text-slate-500">STATUS</div>
-                    <div class="text-xs text-emerald-300 mt-1 flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ONLINE
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center
+                        bg-emerald-950/70 border border-emerald-500/40 text-emerald-300
+                        font-black tracking-widest shadow-[0_0_25px_rgba(16,185,129,.12)]">
+                        AT
+                    </div>
+                    <div class="min-w-0">
+                        <div class="tiny mono text-emerald-400 mb-1">3D VEHICLE PORTFOLIO</div>
+                        <h1 class="font-bold text-lg text-white truncate">Anuthep Toeiliang</h1>
+                        <p class="text-[11px] text-slate-400">Hard-Surface • Military • PBR</p>
                     </div>
                 </div>
-                <div class="glass-soft rounded-lg px-3 py-2 flex-1">
-                    <div class="tiny mono text-slate-500">RENDER</div>
-                    <div class="text-xs text-sky-300 mt-1">WEBGL / PBR</div>
+
+                <p class="mt-4 text-xs leading-relaxed text-slate-300">
+                    แฟ้มผลงานโมเดล 3D เน้นงานยานพาหนะ ฮาร์ดเซอเฟส
+                    โครงสร้างเชิงกล และวัสดุ PBR พร้อมระบบแสดงผลแบบ Interactive
+                </p>
+
+                <div class="mt-4 flex gap-2">
+                    <div class="glass-soft rounded-lg px-3 py-2 flex-1">
+                        <div class="tiny mono text-slate-500">STATUS</div>
+                        <div class="text-xs text-emerald-300 mt-1 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ONLINE
+                        </div>
+                    </div>
+                    <div class="glass-soft rounded-lg px-3 py-2 flex-1">
+                        <div class="tiny mono text-slate-500">RENDER</div>
+                        <div class="text-xs text-sky-300 mt-1">WEBGL / PBR</div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="glass rounded-2xl p-4 scroll overflow-y-auto flex-1">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="tiny mono font-bold text-emerald-400">MODEL SELECT</h2>
+                    <span id="model-id" class="tiny mono text-slate-500">UNIT-01</span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <button class="btn active rounded-xl p-2 text-left" id="model-tank">
+                        <div class="text-lg">🛡️</div>
+                        <div class="text-[10px] font-semibold mt-1">PORK TANK</div>
+                    </button>
+                    <button class="btn rounded-xl p-2 text-left" id="model-apc">
+                        <div class="text-lg">🚙</div>
+                        <div class="text-[10px] font-semibold mt-1">APC</div>
+                    </button>
+                    <button class="btn rounded-xl p-2 text-left" id="model-drone">
+                        <div class="text-lg">✈️</div>
+                        <div class="text-[10px] font-semibold mt-1">DRONE</div>
+                    </button>
+                </div>
+
+                <div class="my-4 border-t border-slate-700/50"></div>
+
+                <h2 class="tiny mono font-bold text-emerald-400 mb-3">CAMERA</h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="view-iso" class="btn active py-2.5 px-3 rounded-xl text-xs">Isometric</button>
+                    <button id="view-side" class="btn py-2.5 px-3 rounded-xl text-xs">Side</button>
+                    <button id="view-front" class="btn py-2.5 px-3 rounded-xl text-xs">Front</button>
+                    <button id="view-top" class="btn py-2.5 px-3 rounded-xl text-xs">Top</button>
+                </div>
+
+                <div class="my-4 border-t border-slate-700/50"></div>
+
+                <h2 class="tiny mono font-bold text-emerald-400 mb-3">DISPLAY</h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="mat-default" class="btn active py-2.5 px-3 rounded-xl text-xs">PBR Material</button>
+                    <button id="mat-wireframe" class="btn py-2.5 px-3 rounded-xl text-xs">Wireframe</button>
+                </div>
+
+                <button id="btn-rotate" class="btn active w-full mt-2 py-2.5 px-3 rounded-xl text-xs flex justify-between items-center">
+                    <span>Auto Rotation</span>
+                    <span id="rotate-status" class="text-[10px] bg-emerald-500/15 text-emerald-300 px-2 py-1 rounded-md">ON</span>
+                </button>
+
+                <div class="my-4 border-t border-slate-700/50"></div>
+
+                <h2 class="tiny mono font-bold text-emerald-400 mb-3">LIGHTING</h2>
+                <div class="grid grid-cols-3 gap-2">
+                    <button id="light-studio" class="btn active py-2 rounded-xl text-[10px]">Studio</button>
+                    <button id="light-cyan" class="btn py-2 rounded-xl text-[10px]">Cyan</button>
+                    <button id="light-red" class="btn py-2 rounded-xl text-[10px]">Red</button>
+                </div>
+            </section>
+
+            <footer class="glass rounded-2xl p-3 pointer-events-auto">
+                <label for="file-input" class="btn rounded-xl w-full py-3 cursor-pointer flex items-center justify-center gap-2 text-xs">
+                    <span>📦</span> เปลี่ยน Model ของฉัน (.GLB / .GLTF / .FBX)
+                </label>
+                <input id="file-input" type="file" accept=".glb,.gltf,.fbx" class="hidden">
+                <div class="text-[9px] text-slate-500 text-center mt-2">
+                    ไฟล์ที่เลือกจะแสดงแทนโมเดลปัจจุบันในหน้าเว็บ
+                </div>
+            </footer>
+        </aside>
+
+        <!-- RIGHT HUD -->
+        <div class="right-panel pointer-events-none absolute right-5 top-20 hidden lg:block">
+            <div class="glass rounded-2xl p-4 w-64">
+                <div class="tiny mono text-emerald-400">CURRENT UNIT</div>
+                <div id="hud-name" class="text-xl font-bold text-white mt-1">PORK TANK</div>
+                <div id="hud-desc" class="text-[11px] text-slate-400 mt-1">Experimental armored vehicle</div>
+
+                <div class="mt-4 space-y-2">
+                    <div class="flex justify-between text-[10px] mono"><span class="text-slate-500">POLY / DETAIL</span><span>HIGH</span></div>
+                    <div class="h-1 bg-slate-800 rounded-full overflow-hidden"><div class="h-full w-[86%] bg-emerald-400"></div></div>
+                    <div class="flex justify-between text-[10px] mono"><span class="text-slate-500">MATERIAL</span><span>PBR</span></div>
+                    <div class="h-1 bg-slate-800 rounded-full overflow-hidden"><div class="h-full w-[94%] bg-sky-400"></div></div>
+                    <div class="flex justify-between text-[10px] mono"><span class="text-slate-500">PRESENTATION</span><span>REALTIME</span></div>
+                    <div class="h-1 bg-slate-800 rounded-full overflow-hidden"><div class="h-full w-[100%] bg-violet-400"></div></div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-700/50 flex justify-between text-[9px] mono text-slate-500">
+                    <span>THREE.JS</span><span>INTERACTIVE</span>
                 </div>
             </div>
-        </header>
+        </div>
 
-        <section class="glass rounded-2xl p-4 scroll overflow-y-auto flex-1">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="tiny mono font-bold text-emerald-400">MODEL SELECT</h2>
-                <span id="model-id" class="tiny mono text-slate-500">UNIT-01</span>
-            </div>
-
-            <div class="grid grid-cols-3 gap-2">
-                <button class="btn active rounded-xl p-2 text-left" id="model-tank">
-                    <div class="text-lg">🛡️</div>
-                    <div class="text-[10px] font-semibold mt-1">PORK TANK</div>
-                </button>
-                <button class="btn rounded-xl p-2 text-left" id="model-apc">
-                    <div class="text-lg">🚙</div>
-                    <div class="text-[10px] font-semibold mt-1">APC</div>
-                </button>
-                <button class="btn rounded-xl p-2 text-left" id="model-drone">
-                    <div class="text-lg">✈️</div>
-                    <div class="text-[10px] font-semibold mt-1">DRONE</div>
-                </button>
-            </div>
-
-            <div class="my-4 border-t border-slate-700/50"></div>
-
-            <h2 class="tiny mono font-bold text-emerald-400 mb-3">CAMERA</h2>
-            <div class="grid grid-cols-2 gap-2">
-                <button id="view-iso" class="btn active py-2.5 px-3 rounded-xl text-xs">Isometric</button>
-                <button id="view-side" class="btn py-2.5 px-3 rounded-xl text-xs">Side</button>
-                <button id="view-front" class="btn py-2.5 px-3 rounded-xl text-xs">Front</button>
-                <button id="view-top" class="btn py-2.5 px-3 rounded-xl text-xs">Top</button>
-            </div>
-
-            <div class="my-4 border-t border-slate-700/50"></div>
-
-            <h2 class="tiny mono font-bold text-emerald-400 mb-3">DISPLAY</h2>
-            <div class="grid grid-cols-2 gap-2">
-                <button id="mat-default" class="btn active py-2.5 px-3 rounded-xl text-xs">PBR Material</button>
-                <button id="mat-wireframe" class="btn py-2.5 px-3 rounded-xl text-xs">Wireframe</button>
-            </div>
-
-            <button id="btn-rotate" class="btn active w-full mt-2 py-2.5 px-3 rounded-xl text-xs flex justify-between items-center">
-                <span>Auto Rotation</span>
-                <span id="rotate-status" class="text-[10px] bg-emerald-500/15 text-emerald-300 px-2 py-1 rounded-md">ON</span>
-            </button>
-
-            <div class="my-4 border-t border-slate-700/50"></div>
-
-            <h2 class="tiny mono font-bold text-emerald-400 mb-3">LIGHTING</h2>
-            <div class="grid grid-cols-3 gap-2">
-                <button id="light-studio" class="btn active py-2 rounded-xl text-[10px]">Studio</button>
-                <button id="light-cyan" class="btn py-2 rounded-xl text-[10px]">Cyan</button>
-                <button id="light-red" class="btn py-2 rounded-xl text-[10px]">Red</button>
-            </div>
-        </section>
-
-        <footer class="glass rounded-2xl p-3 pointer-events-auto">
-            <label for="file-input" class="btn rounded-xl w-full py-3 cursor-pointer flex items-center justify-center gap-2 text-xs">
-                <span>📦</span> เปลี่ยน Model ของฉัน (.GLB / .GLTF / .FBX)
-            </label>
-            <input id="file-input" type="file" accept=".glb,.gltf,.fbx" class="hidden">
-            <div class="text-[9px] text-slate-500 text-center mt-2">
-                ไฟล์ที่เลือกจะแสดงแทนโมเดลปัจจุบันในหน้าเว็บ
-            </div>
-        </footer>
-    </aside>
-
-    <!-- RIGHT HUD -->
-    <div class="right-panel pointer-events-none absolute right-5 top-5 hidden lg:block">
-        <div class="glass rounded-2xl p-4 w-64">
-            <div class="tiny mono text-emerald-400">CURRENT UNIT</div>
-            <div id="hud-name" class="text-xl font-bold text-white mt-1">PORK TANK</div>
-            <div id="hud-desc" class="text-[11px] text-slate-400 mt-1">Experimental armored vehicle</div>
-
-            <div class="mt-4 space-y-2">
-                <div class="flex justify-between text-[10px] mono"><span class="text-slate-500">POLY / DETAIL</span><span>HIGH</span></div>
-                <div class="h-1 bg-slate-800 rounded-full overflow-hidden"><div class="h-full w-[86%] bg-emerald-400"></div></div>
-                <div class="flex justify-between text-[10px] mono"><span class="text-slate-500">MATERIAL</span><span>PBR</span></div>
-                <div class="h-1 bg-slate-800 rounded-full overflow-hidden"><div class="h-full w-[94%] bg-sky-400"></div></div>
-                <div class="flex justify-between text-[10px] mono"><span class="text-slate-500">PRESENTATION</span><span>REALTIME</span></div>
-                <div class="h-1 bg-slate-800 rounded-full overflow-hidden"><div class="h-full w-[100%] bg-violet-400"></div></div>
-            </div>
-
-            <div class="mt-4 pt-3 border-t border-slate-700/50 flex justify-between text-[9px] mono text-slate-500">
-                <span>THREE.JS</span><span>INTERACTIVE</span>
+        <!-- bottom center hint -->
+        <div class="absolute bottom-5 left-1/2 -translate-x-1/2 pointer-events-none">
+            <div class="glass rounded-full px-4 py-2 text-[10px] mono text-slate-400">
+                DRAG = ROTATE &nbsp; • &nbsp; WHEEL = ZOOM &nbsp; • &nbsp; CLICK MODEL = INSPECT
             </div>
         </div>
     </div>
 
-    <!-- bottom center hint -->
-    <div class="absolute bottom-5 left-1/2 -translate-x-1/2 pointer-events-none">
-        <div class="glass rounded-full px-4 py-2 text-[10px] mono text-slate-400">
-            DRAG = ROTATE &nbsp; • &nbsp; WHEEL = ZOOM &nbsp; • &nbsp; CLICK MODEL = INSPECT
-        </div>
+    <div id="loading" class="fixed bottom-5 right-5 z-20 glass rounded-xl px-4 py-2 flex items-center gap-2">
+        <span id="loading-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="loading-text" class="tiny mono text-emerald-300">SCENE READY</span>
     </div>
-</div>
+  </div>
 
-<div id="loading" class="fixed bottom-5 right-5 z-20 glass rounded-xl px-4 py-2 flex items-center gap-2">
-    <span id="loading-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-    <span id="loading-text" class="tiny mono text-emerald-300">SCENE READY</span>
-</div>
+  <!-- TAB 2: AR CAMERA MODE -->
+  <div id="tab-ar" class="tab-content">
+    <a-scene 
+      embedded 
+      vr-mode-ui="enabled: false" 
+      loading-screen="enabled: false"
+      arjs="sourceType: webcam; debugUIEnabled: false; cameraParametersUrl: https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.8/data/data/camera_para.dat;">
 
+      <!-- Custom Pattern Marker -->
+      <a-marker type="pattern" url="pattern-ดีไซน์ที่ยังไม่ได้ตั้งชื่อ (3).patt" smooth="true">
+        <a-entity gltf-model="https://sibsansuk.github.io/epona.glb" fit></a-entity>
+      </a-marker>
+
+      <a-entity camera></a-entity>
+    </a-scene>
+
+    <!-- Credit Footer -->
+    <p style="position:fixed; bottom:8px; left:10px; margin:0; padding:4px 8px; border-radius:6px;
+     background:#000a; color:#fff; font:12px system-ui, Tahoma, sans-serif; z-index: 40;">
+      <a href="https://aitutorialcourse.github.io/tracker.png" target="_blank" style="color:#9ef">marker image</a>
+      · Epona by
+      <a href="https://sketchfab.com/3d-models/epona-1f1da2940b0d4ddcb4beae1680c47918" target="_blank" style="color:#9ef">Vasian-Digital3D</a>
+      · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" style="color:#9ef">CC BY 4.0</a>
+    </p>
+  </div>
+
+<!-- TAB SWITCHING LOGIC -->
+<script>
+  function switchTab(tab) {
+    document.getElementById('tab-3d').classList.toggle('active', tab === '3d');
+    document.getElementById('tab-ar').classList.toggle('active', tab === 'ar');
+    
+    document.getElementById('nav-3d').classList.toggle('active', tab === '3d');
+    document.getElementById('nav-ar').classList.toggle('active', tab === 'ar');
+  }
+</script>
+
+<!-- THREE.JS LOGIC -->
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -341,7 +425,6 @@ function createEnvironment() {
     grid.material.opacity = .38;
     scene.add(grid);
 
-    // Circular inspection rings
     for (let r of [2.3, 3.4, 5.0]) {
         const ring = new THREE.Mesh(
             new THREE.RingGeometry(r-.006, r+.006, 96),
@@ -352,7 +435,6 @@ function createEnvironment() {
         decorative.add(ring);
     }
 
-    // Vertical light pillars / hangar decoration
     for (const x of [-7, 7]) {
         const pillar = new THREE.Mesh(
             new THREE.BoxGeometry(.08, 5, .08),
@@ -362,7 +444,6 @@ function createEnvironment() {
         decorative.add(pillar);
     }
 
-    // Floating tech markers
     for (let i=0;i<14;i++) {
         const dot = new THREE.Mesh(
             new THREE.SphereGeometry(.025, 8, 8),
@@ -373,7 +454,6 @@ function createEnvironment() {
     }
     scene.add(decorative);
 
-    // Large soft pedestal
     const pedestal = new THREE.Mesh(
         new THREE.CylinderGeometry(3.7, 4.2, .18, 96),
         new THREE.MeshStandardMaterial({ color:0x0c1419, roughness:.5, metalness:.65 })
@@ -432,7 +512,6 @@ function createProceduralTank() {
         }
     }
 
-    // Pig-face details
     const nose = new THREE.Mesh(new THREE.CylinderGeometry(.43,.43,.12,24),red2);
     nose.rotation.x=Math.PI/2; nose.position.set(0,1.56,1.63); g.add(nose);
     for (const x of [-.15,.15]) {
@@ -440,7 +519,6 @@ function createProceduralTank() {
         hole.rotation.x=Math.PI/2; hole.position.set(x,1.56,1.69); g.add(hole);
     }
 
-    // Antenna
     const antenna = new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.8,8),metal);
     antenna.position.set(.72,2.05,-.45); g.add(antenna);
     const beacon = new THREE.Mesh(new THREE.SphereGeometry(.07,12,12),new THREE.MeshBasicMaterial({color:0x10b981}));
