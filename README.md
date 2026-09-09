@@ -3,17 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Portfolio | Lect.Anuthep Toeiliang</title>
-    <!-- Tailwind CSS สำหรับจัด Styling ส่วน UI -->
+    <title>3D Tank Portfolio | Lect.Anuthep Toeiliang</title>
+    <!-- Tailwind CSS สำหรับจัด Styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #0d1117; color: #f0f6fc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
-        .glass-card {
-            background: rgba(22, 27, 34, 0.75);
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #0c0f12; 
+            color: #e2e8f0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        #canvas-container { 
+            width: 100vw; 
+            height: 100vh; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            z-index: 1; 
+        }
+        /* Tactical Glassmorphism Style */
+        .tactical-card {
+            background: rgba(18, 22, 28, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(84, 110, 122, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+        .tactical-border {
+            border-left: 3px solid #84a98c;
         }
     </style>
     <!-- Import Maps สำหรับ Three.js ES Modules -->
@@ -32,40 +50,40 @@
     <div id="canvas-container"></div>
 
     <!-- UI Overlay -->
-    <div class="relative z-10 flex flex-col justify-between h-screen p-6 md:p-10 pointer-events-none">
+    <div class="relative z-10 flex flex-col justify-between h-screen p-6 md:p-8 pointer-events-none">
         
-        <!-- Header / Profile Info -->
-        <header class="glass-card p-6 rounded-2xl max-w-md pointer-events-auto shadow-2xl transition-all duration-300 hover:border-blue-500/50">
+        <!-- Header / Profile Info (Tactical Theme) -->
+        <header class="tactical-card tactical-border p-5 rounded-r-2xl rounded-l-sm max-w-md pointer-events-auto shadow-2xl">
             <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-400 flex items-center justify-center text-xl font-bold text-white shadow-lg">
+                <div class="w-12 h-12 rounded-lg bg-emerald-900/60 border border-emerald-500/40 flex items-center justify-center text-xl font-black text-emerald-400 tracking-wider">
                     AT
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-wide text-white">Lect.Anuthep Toeiliang</h1>
-                    <p class="text-sm text-blue-400 font-medium">3D Artist & Lecturer</p>
+                    <h1 class="text-lg font-bold tracking-wider text-slate-100 uppercase">Lect.Anuthep Toeiliang</h1>
+                    <p class="text-xs text-emerald-400 font-semibold tracking-widest uppercase">3D Hard-Surface & Military Vehicles</p>
                 </div>
             </div>
-            <p class="mt-4 text-xs text-gray-300 leading-relaxed">
-                แฟ้มสะสมผลงาน 3D และงานโมเดลเชิงเทคนิค เน้นการจัดแสง PBR และรายละเอียดพื้นผิว (PBR Metallic-Roughness Workflow)
+            <p class="mt-3 text-xs text-slate-300 leading-relaxed">
+                แฟ้มสะสมผลงานโมเดล 3D สายยานเกราะและงานฮาร์ดเซอเฟส (Hard-Surface Modeling) เน้นรายละเอียดพื้นผิวโลหะ รอยถลอก และการจัดแสงด้วยระบบ PBR
             </p>
         </header>
 
         <!-- Loading Indicator -->
-        <div id="loading" class="self-center glass-card px-6 py-3 rounded-full flex items-center space-x-3 pointer-events-auto shadow-lg">
-            <div class="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-            <span class="text-sm font-medium text-gray-200" id="loading-text">กำลังโหลดโมเดล 3D...</span>
+        <div id="loading" class="self-center tactical-card px-6 py-3 rounded-full flex items-center space-x-3 pointer-events-auto border border-emerald-500/30">
+            <div class="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-xs font-mono tracking-wider text-emerald-300 uppercase" id="loading-text">Loading Armored Vehicle...</span>
         </div>
 
-        <!-- Controls / Helper Footer -->
+        <!-- Controls / Footer -->
         <footer class="flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
-            <div class="glass-card px-4 py-2 rounded-xl text-xs text-gray-400 pointer-events-auto">
-                <span class="text-blue-400 font-semibold">Controls:</span> คลิกซ้ายหมุนดูโมเดล | คลิกขวาเลื่อนตำแหน่ง | สกรอลล์เมาส์ซูม
+            <div class="tactical-card px-4 py-2 rounded-lg text-xs text-slate-400 pointer-events-auto border-l-2 border-emerald-500">
+                <span class="text-emerald-400 font-bold uppercase">Controls:</span> คลิกซ้ายหมุน | คลิกขวาเลื่อน | สกรอลล์ซูม
             </div>
             
-            <!-- File Upload Input (สำหรับเปลี่ยนโมเดล .glb / .gltf เองได้ทันที) -->
-            <div class="glass-card p-3 rounded-xl pointer-events-auto flex items-center space-x-3">
-                <label for="file-input" class="text-xs font-semibold text-gray-300 cursor-pointer hover:text-white transition">
-                    📂 ทดลองเปลี่ยนโมเดล (.glb)
+            <!-- File Upload Input (สำหรับเปลี่ยนเป็นโมเดล .glb รถถังของคุณเองในอนาคต) -->
+            <div class="tactical-card p-3 rounded-lg pointer-events-auto flex items-center space-x-3 hover:border-emerald-500/50 transition">
+                <label for="file-input" class="text-xs font-mono text-emerald-300 cursor-pointer hover:text-white transition flex items-center gap-2">
+                    <span>🪖</span> ทดสอบเปลี่ยนโมเดลของคุณเอง (.glb)
                 </label>
                 <input type="file" id="file-input" accept=".glb,.gltf" class="hidden" />
             </div>
@@ -87,20 +105,20 @@
         function init() {
             const container = document.getElementById('canvas-container');
 
-            // 1. Scene setup
+            // 1. Scene setup (โทนสีเข้มดิบแนวทหาร)
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0d1117);
+            scene.background = new THREE.Color(0x0c0f12);
 
             // 2. Camera setup
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.set(0, 1.2, 3);
+            camera.position.set(3, 2, 4);
 
-            // 3. Renderer setup (รองรับ PBR & Tone Mapping)
+            // 3. Renderer setup
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.2;
+            renderer.toneMappingExposure = 1.1;
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
@@ -109,102 +127,108 @@
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
-            controls.maxPolarAngle = Math.PI / 2 + 0.1; // ป้องกันกล้องมุดใต้พื้นมากเกินไป
+            controls.maxPolarAngle = Math.PI / 2 - 0.01; // ห้ามกล้องมุดลงใต้พื้น
 
-            // 5. Lighting Setup (เน้นการขับเงา PBR Metallic & Roughness)
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            // 5. Lighting Setup (เน้นขับเงาโลหะ PBR)
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambientLight);
 
-            // Main Directional Light (Key Light)
-            const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
-            dirLight.position.set(5, 8, 5);
+            // Key Light (แสงอาทิตย์หลัก)
+            const dirLight = new THREE.DirectionalLight(0xfffaed, 2.8);
+            dirLight.position.set(6, 10, 5);
             dirLight.castShadow = true;
             dirLight.shadow.mapSize.width = 2048;
             dirLight.shadow.mapSize.height = 2048;
             scene.add(dirLight);
 
-            // Rim Light (ไฟด้านหลังสร้างมิติเส้นขอบ)
-            const rimLight = new THREE.DirectionalLight(0x3b82f6, 3.0);
-            rimLight.position.set(-5, 3, -5);
+            // Rim Light (แสงสะท้อนขอบหลัง เพิ่มความคมของรูปทรงรถถัง)
+            const rimLight = new THREE.DirectionalLight(0x718096, 2.0);
+            rimLight.position.set(-6, 4, -6);
             scene.add(rimLight);
 
-            // 6. HDRI Environment Map (เพื่อให้โมเดล PBR มีแสงสะท้อนที่สมจริง)
+            // 6. HDRI Environment Map (เพื่อให้ผิวเหล็กสะท้อนแสงภายนอกอย่างสมจริง)
             new RGBELoader()
                 .setPath('https://threejs.org/examples/textures/equirectangular/')
-                .load('royal_esplanade_1k.hdr', function (texture) {
+                .load('park2k.hdr', function (texture) {
                     texture.mapping = THREE.EquirectangularReflectionMapping;
                     scene.environment = texture;
                 });
 
-            // 7. Ground Shadow Plane
+            // 7. Ground Grid & Shadow (พื้นสไตล์สนามทดสอบ)
+            const gridHelper = new THREE.GridHelper(20, 20, 0x546e7a, 0x263238);
+            gridHelper.position.y = 0;
+            scene.add(gridHelper);
+
             const shadowPlane = new THREE.Mesh(
-                new THREE.PlaneGeometry(10, 10),
-                new THREE.ShadowMaterial({ opacity: 0.4 })
+                new THREE.PlaneGeometry(20, 20),
+                new THREE.ShadowMaterial({ opacity: 0.6 })
             );
             shadowPlane.rotation.x = -Math.PI / 2;
-            shadowPlane.position.y = 0;
+            shadowPlane.position.y = -0.01;
             shadowPlane.receiveShadow = true;
             scene.add(shadowPlane);
 
-            // 8. Load Default Sample GLTF/GLB Model
+            // 8. โหลดโมเดลรถถังฟรี PBR จาก CDN
+            // โมเดล: T-62 / Armored Vehicle (ฟรีพร้อม PBR Textures)
             const loader = new GLTFLoader();
-            // ตัวอย่างใช้โมเดล Helmet เพื่อโชว์วัสดุ PBR (โลหะ, ผ้า, กระจก)
+            const tankModelURL = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/T20_medium_tank/glTF-Binary/T20_medium_tank.glb';
+
             loader.load(
-                'https://threejs.org/examples/models/gltf/DamagedHelmet/GlTF-Binary/DamagedHelmet.glb',
+                tankModelURL,
                 function (gltf) {
                     setupLoadedModel(gltf.scene);
                     document.getElementById('loading').style.display = 'none';
                 },
                 function (xhr) {
-                    const percent = Math.round((xhr.loaded / xhr.total) * 100);
-                    document.getElementById('loading-text').innerText = `กำลังโหลดโมเดล 3D... ${percent}%`;
+                    if (xhr.total > 0) {
+                        const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                        document.getElementById('loading-text').innerText = `Loading Tank Model... ${percent}%`;
+                    }
                 },
                 function (error) {
-                    console.error('An error occurred loading the model:', error);
-                    document.getElementById('loading-text').innerText = 'ไม่สามารถโหลดโมเดลตัวอย่างได้';
+                    console.error('Error loading tank model:', error);
+                    document.getElementById('loading-text').innerText = 'Failed to load sample model';
                 }
             );
 
-            // Window Resize Listener
             window.addEventListener('resize', onWindowResize);
-
-            // Local File Upload Listener
             document.getElementById('file-input').addEventListener('change', handleFileUpload);
         }
 
-        // ฟังก์ชันจัดการโมเดลที่โหลดเข้ามา (จัดกึ่งกลาง + ปรับเงา)
         function setupLoadedModel(model) {
             if (currentModel) scene.remove(currentModel);
 
             currentModel = model;
 
-            // จัดตำแหน่งโมเดลให้อยู่จุดศูนย์กลาง
+            // คำนวณ Bounding Box เพื่อจัดให้โมเดลวางอยู่บนพื้นพอดี
             const box = new THREE.Box3().setFromObject(model);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
 
             model.position.x += (model.position.x - center.x);
-            model.position.y += (model.position.y - center.y) + (size.y / 2);
+            model.position.y += (model.position.y - box.min.y); // ตั้งบนพื้น Y=0
             model.position.z += (model.position.z - center.z);
 
-            // ปรับระยะกล้องตามขนาดโมเดล
+            // ปรับระยะกล้องอัตโนมัติ
             const maxDim = Math.max(size.x, size.y, size.z);
-            camera.position.set(0, size.y * 0.8, maxDim * 2.2);
-            controls.target.set(0, size.y * 0.5, 0);
+            camera.position.set(size.x * 1.5, size.y * 1.2, maxDim * 1.6);
+            controls.target.set(0, size.y * 0.4, 0);
             controls.update();
 
-            // เปิดใช้งานการทอดเงาและรับแสง PBR ทุกชิ้นส่วน
+            // เปิดระบบเงาและ PBR
             model.traverse((child) => {
                 if (child.isMesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
+                    if (child.material) {
+                        child.material.envMapIntensity = 1.2;
+                    }
                 }
             });
 
             scene.add(model);
         }
 
-        // ฟังก์ชันรองรับการอัปโหลดไฟล์ GLB/GLTF ของตนเอง
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -213,7 +237,7 @@
             const loader = new GLTFLoader();
 
             document.getElementById('loading').style.display = 'flex';
-            document.getElementById('loading-text').innerText = 'กำลังโหลดโมเดลของคุณ...';
+            document.getElementById('loading-text').innerText = 'Loading custom file...';
 
             loader.load(url, (gltf) => {
                 setupLoadedModel(gltf.scene);
@@ -231,9 +255,9 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // หมุนโมเดลช้าๆ เพิ่มความมีมิติ
+            // หมุนโมเดลช้าๆ แสดงมิติของรถถัง
             if (currentModel) {
-                currentModel.rotation.y += 0.003;
+                currentModel.rotation.y += 0.0015;
             }
 
             controls.update();
