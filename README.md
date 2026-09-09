@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Tank Portfolio | Lect.Anuthep Toeiliang</title>
+    <title>3D Porktank Portfolio | Lect.Anuthep Toeiliang</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -22,7 +22,6 @@
             left: 0; 
             z-index: 1; 
         }
-        /* Tactical Glassmorphism Style */
         .tactical-card {
             background: rgba(13, 17, 23, 0.88);
             backdrop-filter: blur(16px);
@@ -47,7 +46,6 @@
             color: #34d399;
             font-weight: 600;
         }
-        /* Custom Scrollbar สำหรับ Panel ซ้ายกรณีจอเล็ก */
         .custom-scroll::-webkit-scrollbar {
             width: 4px;
         }
@@ -56,7 +54,7 @@
             border-radius: 4px;
         }
     </style>
-    <!-- Import Maps สำหรับ Three.js ES Modules -->
+    <!-- Import Maps สำหรับ Three.js และ FBX/GLTF Loaders -->
     <script type="importmap">
     {
         "imports": {
@@ -71,10 +69,10 @@
     <!-- 3D Canvas Container -->
     <div id="canvas-container"></div>
 
-    <!-- UI Overlay: แบ่งเป็น Panel ฝั่งซ้ายเพื่อไม่ให้บังโมเดล -->
+    <!-- UI Overlay (ไม่บังโมเดล) -->
     <div class="relative z-10 flex h-screen p-4 md:p-6 pointer-events-none">
         
-        <!-- Left Sidebar Panel (ข้อมูลประวัติ + ปุ่มกดควบคุมทั้งหมด) -->
+        <!-- Left Sidebar Panel -->
         <aside class="w-full max-w-sm h-full flex flex-col justify-between gap-4 pointer-events-auto custom-scroll overflow-y-auto pr-1">
             
             <div class="space-y-4">
@@ -90,7 +88,7 @@
                         </div>
                     </div>
                     <p class="mt-3 text-xs text-slate-300 leading-relaxed">
-                        แฟ้มสะสมผลงานโมเดล 3D สายยานเกราะและงานฮาร์ดเซอเฟส (Hard-Surface Modeling) เน้นรายละเอียดโครงสร้าง PBR และพื้นผิวโลหะ
+                        แฟ้มสะสมผลงานโมเดล 3D สายยานเกราะ Porktank และงานฮาร์ดเซอเฟส เน้นโครงสร้าง PBR และพื้นผิวโลหะ
                     </p>
                 </header>
 
@@ -128,21 +126,16 @@
                 </section>
             </div>
 
-            <!-- Bottom Tools (Switch Preset / Upload) -->
+            <!-- Bottom Tools -->
             <footer class="tactical-card p-3 rounded-xl space-y-2 text-xs">
-                <div class="flex gap-2">
-                    <button id="btn-procedural" class="btn-tactical active flex-1 py-1.5 rounded-lg text-center">Tank Preset</button>
-                    <button id="btn-helmet" class="btn-tactical flex-1 py-1.5 rounded-lg text-center">Helmet Preset</button>
-                </div>
-                
                 <label for="file-input" class="btn-tactical w-full py-2 px-3 rounded-lg cursor-pointer flex items-center justify-center gap-2 hover:text-white">
-                    <span>🪖</span> โหลดไฟล์ของคุณ (.glb)
+                    <span>🪖</span> โหลดไฟล์โมเดล (.fbx / .glb)
                 </label>
-                <input type="file" id="file-input" accept=".glb,.gltf" class="hidden" />
+                <input type="file" id="file-input" accept=".fbx,.glb,.gltf" class="hidden" />
             </footer>
         </aside>
 
-        <!-- Loading / Status Tag (มุมขวาบน ไม่บังสายตา) -->
+        <!-- Status Tag -->
         <div class="ml-auto pointer-events-auto">
             <div id="loading" class="tactical-card px-4 py-2 rounded-lg flex items-center space-x-2 border border-emerald-500/30">
                 <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></div>
@@ -152,16 +145,18 @@
 
     </div>
 
-    <!-- Three.js Logic Script -->
+    <!-- Three.js Script -->
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
         let scene, camera, renderer, controls, currentModel;
         let isAutoRotate = true;
-        let isWireframe = false;
-        let originalMaterials = new Map();
+
+        // ชื่อไฟล์ FBX ของคุณใน Repository
+        const defaultFBXFile = 'porktankanim.FBX'; 
 
         init();
         animate();
@@ -169,14 +164,11 @@
         function init() {
             const container = document.getElementById('canvas-container');
 
-            // 1. Scene setup
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x080a0c);
 
-            // 2. Camera setup
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
             
-            // 3. Renderer setup
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -186,62 +178,119 @@
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
-            // 4. Orbit Controls
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
-            controls.maxPolarAngle = Math.PI / 2 - 0.01;
 
-            // 5. Tactical PBR Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            // Lights Setup
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
             scene.add(ambientLight);
 
             const mainLight = new THREE.DirectionalLight(0xfffaed, 3.0);
             mainLight.position.set(8, 12, 6);
             mainLight.castShadow = true;
-            mainLight.shadow.mapSize.width = 2048;
-            mainLight.shadow.mapSize.height = 2048;
             scene.add(mainLight);
 
             const fillLight = new THREE.DirectionalLight(0x38bdf8, 1.5);
             fillLight.position.set(-6, 6, -4);
             scene.add(fillLight);
 
-            const rimLight = new THREE.DirectionalLight(0x34d399, 2.0);
-            rimLight.position.set(0, 4, -8);
-            scene.add(rimLight);
-
-            // 6. Grid & Ground Shadow
+            // Ground & Grid
             const gridHelper = new THREE.GridHelper(25, 25, 0x334155, 0x0f172a);
-            gridHelper.position.y = 0;
             scene.add(gridHelper);
 
-            const shadowPlane = new THREE.Mesh(
-                new THREE.PlaneGeometry(25, 25),
-                new THREE.ShadowMaterial({ opacity: 0.6 })
-            );
-            shadowPlane.rotation.x = -Math.PI / 2;
-            shadowPlane.position.y = -0.001;
-            shadowPlane.receiveShadow = true;
-            scene.add(shadowPlane);
+            // พยายามโหลดไฟล์ FBX ของคุณก่อน หากไม่มีให้โหลด Procedural Tank
+            loadFBXModel(defaultFBXFile);
 
-            // Load Initial Model
-            createProceduralTank();
-
-            // Event Listeners Setup
             setupUIEvents();
             window.addEventListener('resize', onWindowResize);
         }
 
-        // สั่งเปลี่ยนตำแหน่งจุดศูนย์กลางของโมเดลให้เยื้องไปทางขวา เพื่อไม่ให้ UI ซ้ายบัง
-        function updateModelOffsetAndCamera(camX, camY, camZ) {
-            if (!currentModel) return;
+        function loadFBXModel(url) {
+            const loader = new FBXLoader();
+            document.getElementById('loading-text').innerText = 'Loading Porktank FBX...';
+
+            loader.load(
+                url,
+                (fbx) => {
+                    setupModelToScene(fbx);
+                    document.getElementById('loading-text').innerText = 'Porktank FBX Loaded';
+                },
+                (xhr) => {
+                    if (xhr.total > 0) {
+                        const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                        document.getElementById('loading-text').innerText = `Loading... ${percent}%`;
+                    }
+                },
+                (err) => {
+                    console.warn('Could not load local FBX file, building procedural tank fallback.', err);
+                    createProceduralTank();
+                }
+            );
+        }
+
+        function setupModelToScene(model) {
+            if (currentModel) scene.remove(currentModel);
+            currentModel = model;
 
             const box = new THREE.Box3().setFromObject(currentModel);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
 
-            // ปรับจุดรับกล้อง (Target) ให้เยื้องขวาเล็กน้อย บนหน้าจอคอม
+            currentModel.position.x += (currentModel.position.x - center.x);
+            currentModel.position.y += (currentModel.position.y - box.min.y);
+            currentModel.position.z += (currentModel.position.z - center.z);
+
+            currentModel.traverse((c) => {
+                if (c.isMesh) {
+                    c.castShadow = true;
+                    c.receiveShadow = true;
+                }
+            });
+
+            scene.add(currentModel);
+
+            const maxDim = Math.max(size.x, size.y, size.z);
+            updateModelOffsetAndCamera(maxDim * 1.5, maxDim * 1.0, maxDim * 1.8);
+        }
+
+        function createProceduralTank() {
+            if (currentModel) scene.remove(currentModel);
+
+            const tankGroup = new THREE.Group();
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2e3d32, roughness: 0.4, metalness: 0.6 });
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.2, metalness: 0.9 });
+            const trackMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8, metalness: 0.3 });
+
+            const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.6, 3.2), bodyMat);
+            bodyMesh.position.y = 0.5;
+            tankGroup.add(bodyMesh);
+
+            const turretMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.0, 0.5, 12), bodyMat);
+            turretMesh.position.set(0, 1.0, -0.2);
+            tankGroup.add(turretMesh);
+
+            const barrelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.2, 16), metalMat);
+            barrelMesh.rotation.x = Math.PI / 2;
+            barrelMesh.position.set(0, 1.05, 1.1);
+            tankGroup.add(barrelMesh);
+
+            [-1.15, 1.15].forEach(x => {
+                const trackMesh = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.6, 3.4), trackMat);
+                trackMesh.position.set(x, 0.3, 0);
+                tankGroup.add(trackMesh);
+            });
+
+            currentModel = tankGroup;
+            scene.add(currentModel);
+            updateModelOffsetAndCamera(3.5, 2.5, 4.5);
+            document.getElementById('loading-text').innerText = 'Procedural Tank Loaded';
+        }
+
+        function updateModelOffsetAndCamera(camX, camY, camZ) {
+            if (!currentModel) return;
+            const box = new THREE.Box3().setFromObject(currentModel);
+            const size = box.getSize(new THREE.Vector3());
             const offsetX = window.innerWidth > 768 ? 0.8 : 0; 
             
             controls.target.set(offsetX, size.y * 0.5, 0);
@@ -249,166 +298,32 @@
             controls.update();
         }
 
-        function createProceduralTank() {
-            if (currentModel) scene.remove(currentModel);
-            originalMaterials.clear();
-
-            const tankGroup = new THREE.Group();
-
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2e3d32, roughness: 0.4, metalness: 0.6 });
-            const metalMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.2, metalness: 0.9 });
-            const trackMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8, metalness: 0.3 });
-
-            // Body
-            const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.6, 3.2), bodyMat);
-            bodyMesh.position.y = 0.5;
-            bodyMesh.castShadow = true;
-            bodyMesh.receiveShadow = true;
-            tankGroup.add(bodyMesh);
-
-            // Turret
-            const turretMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.0, 0.5, 12), bodyMat);
-            turretMesh.position.set(0, 1.0, -0.2);
-            turretMesh.castShadow = true;
-            tankGroup.add(turretMesh);
-
-            // Cannon
-            const barrelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.2, 16), metalMat);
-            barrelMesh.rotation.x = Math.PI / 2;
-            barrelMesh.position.set(0, 1.05, 1.1);
-            barrelMesh.castShadow = true;
-            tankGroup.add(barrelMesh);
-
-            // Tracks & Wheels
-            [-1.15, 1.15].forEach(x => {
-                const trackMesh = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.6, 3.4), trackMat);
-                trackMesh.position.set(x, 0.3, 0);
-                trackMesh.castShadow = true;
-                tankGroup.add(trackMesh);
-
-                for(let z = -1.3; z <= 1.3; z += 0.65) {
-                    const wheelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.45, 16), metalMat);
-                    wheelMesh.rotation.z = Math.PI / 2;
-                    wheelMesh.position.set(x, 0.25, z);
-                    wheelMesh.castShadow = true;
-                    tankGroup.add(wheelMesh);
-                }
-            });
-
-            currentModel = tankGroup;
-            scene.add(currentModel);
-
-            // บันทึก Material ไว้สลับโหมด Wireframe
-            currentModel.traverse((child) => {
-                if (child.isMesh) originalMaterials.set(child, child.material);
-            });
-
-            updateModelOffsetAndCamera(3.5, 2.5, 4.5);
-            document.getElementById('loading-text').innerText = 'Procedural Tank Loaded';
-        }
-
-        function loadCDNModel(url) {
-            const loader = new GLTFLoader();
-            document.getElementById('loading-text').innerText = 'Loading GLB...';
-
-            loader.load(
-                url,
-                (gltf) => {
-                    if (currentModel) scene.remove(currentModel);
-                    originalMaterials.clear();
-                    
-                    currentModel = gltf.scene;
-
-                    const box = new THREE.Box3().setFromObject(currentModel);
-                    const center = box.getCenter(new THREE.Vector3());
-                    const size = box.getSize(new THREE.Vector3());
-
-                    currentModel.position.x += (currentModel.position.x - center.x);
-                    currentModel.position.y += (currentModel.position.y - box.min.y);
-                    currentModel.position.z += (currentModel.position.z - center.z);
-
-                    currentModel.traverse((c) => {
-                        if(c.isMesh) {
-                            c.castShadow = true;
-                            c.receiveShadow = true;
-                            originalMaterials.set(c, c.material);
-                        }
-                    });
-
-                    scene.add(currentModel);
-
-                    const maxDim = Math.max(size.x, size.y, size.z);
-                    updateModelOffsetAndCamera(size.x * 1.5, size.y * 1.2, maxDim * 2.0);
-                    document.getElementById('loading-text').innerText = 'Model Loaded';
-                },
-                undefined,
-                (err) => {
-                    console.error(err);
-                    createProceduralTank();
-                }
-            );
-        }
-
         function setupUIEvents() {
-            // Camera Buttons
-            document.getElementById('view-iso').addEventListener('click', (e) => {
-                setActiveBtn(e.target, ['view-iso', 'view-side', 'view-front', 'view-top']);
-                updateModelOffsetAndCamera(3.5, 2.5, 4.5);
-            });
-            document.getElementById('view-side').addEventListener('click', (e) => {
-                setActiveBtn(e.target, ['view-iso', 'view-side', 'view-front', 'view-top']);
-                updateModelOffsetAndCamera(5.0, 1.2, 0.0);
-            });
-            document.getElementById('view-front').addEventListener('click', (e) => {
-                setActiveBtn(e.target, ['view-iso', 'view-side', 'view-front', 'view-top']);
-                updateModelOffsetAndCamera(0.0, 1.2, 5.0);
-            });
-            document.getElementById('view-top').addEventListener('click', (e) => {
-                setActiveBtn(e.target, ['view-iso', 'view-side', 'view-front', 'view-top']);
-                updateModelOffsetAndCamera(0.0, 6.0, 0.01);
-            });
+            document.getElementById('view-iso').addEventListener('click', () => updateModelOffsetAndCamera(3.5, 2.5, 4.5));
+            document.getElementById('view-side').addEventListener('click', () => updateModelOffsetAndCamera(5.0, 1.2, 0.0));
+            document.getElementById('view-front').addEventListener('click', () => updateModelOffsetAndCamera(0.0, 1.2, 5.0));
+            document.getElementById('view-top').addEventListener('click', () => updateModelOffsetAndCamera(0.0, 6.0, 0.01));
 
-            // Material Buttons
-            document.getElementById('mat-default').addEventListener('click', (e) => {
-                setActiveBtn(e.target, ['mat-default', 'mat-wireframe']);
-                toggleWireframe(false);
-            });
-            document.getElementById('mat-wireframe').addEventListener('click', (e) => {
-                setActiveBtn(e.target, ['mat-default', 'mat-wireframe']);
-                toggleWireframe(true);
-            });
+            document.getElementById('mat-default').addEventListener('click', () => toggleWireframe(false));
+            document.getElementById('mat-wireframe').addEventListener('click', () => toggleWireframe(true));
 
-            // Auto Rotation Toggle
             document.getElementById('btn-rotate').addEventListener('click', (e) => {
                 isAutoRotate = !isAutoRotate;
-                const statusSpan = document.getElementById('rotate-status');
-                if (isAutoRotate) {
-                    statusSpan.innerText = 'ON';
-                    statusSpan.className = 'text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded';
-                    e.currentTarget.classList.add('active');
-                } else {
-                    statusSpan.innerText = 'OFF';
-                    statusSpan.className = 'text-[10px] bg-slate-500/20 text-slate-400 px-1.5 py-0.5 rounded';
-                    e.currentTarget.classList.remove('active');
-                }
+                document.getElementById('rotate-status').innerText = isAutoRotate ? 'ON' : 'OFF';
             });
 
-            // Model Switchers
-            document.getElementById('btn-procedural').addEventListener('click', (e) => {
-                setActiveBtn(e.target, ['btn-procedural', 'btn-helmet']);
-                createProceduralTank();
-            });
-            document.getElementById('btn-helmet').addEventListener('click', (e) => {
-                setActiveBtn(e.target, ['btn-procedural', 'btn-helmet']);
-                loadCDNModel('https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/models/gltf/DamagedHelmet/GlTF-Binary/DamagedHelmet.glb');
-            });
-
-            // Upload Input
             document.getElementById('file-input').addEventListener('change', (e) => {
                 const file = e.target.files[0];
-                if (file) {
-                    const url = URL.createObjectURL(file);
-                    loadCDNModel(url);
+                if (!file) return;
+
+                const url = URL.createObjectURL(file);
+                const ext = file.name.split('.').pop().toLowerCase();
+
+                if (ext === 'fbx') {
+                    loadFBXModel(url);
+                } else if (ext === 'glb' || ext === 'gltf') {
+                    const loader = new GLTFLoader();
+                    loader.load(url, (gltf) => setupModelToScene(gltf.scene));
                 }
             });
         }
@@ -422,14 +337,6 @@
             });
         }
 
-        function setActiveBtn(target, groupIds) {
-            groupIds.forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) btn.classList.remove('active');
-            });
-            if (target) target.classList.add('active');
-        }
-
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -438,11 +345,9 @@
 
         function animate() {
             requestAnimationFrame(animate);
-
             if (currentModel && isAutoRotate) {
                 currentModel.rotation.y += 0.002;
             }
-
             controls.update();
             renderer.render(scene, camera);
         }
