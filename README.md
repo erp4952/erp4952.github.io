@@ -1,5 +1,3 @@
-# erp4952.github.io
-Anuthep
 <!DOCTYPE html>
 <html lang="th">
 <head>
