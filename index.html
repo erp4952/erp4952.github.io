@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Vehicle Portfolio & AR | Anuthep</title>
+<title>3D Vehicle Portfolio | Anuthep</title>
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
@@ -14,10 +14,6 @@
         color:#e5e7eb;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
-
-    /* Tab Switcher Styles */
-    .tab-content { display: none; width: 100%; height: 100%; position: absolute; inset: 0; }
-    .tab-content.active { display: block; }
 
     #canvas-container {
         position:fixed; inset:0; z-index:0;
@@ -108,54 +104,16 @@
   }
 }
 </script>
-
-<!-- Scripts for AR.js -->
-<script src="https://cdn.jsdelivr.net/npm/aframe@1.6.0/dist/aframe-master.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.8/aframe/build/aframe-ar.js"></script>
-
-<script>
-  // AR.js Component 'fit'
-  AFRAME.registerComponent('fit', {
-    init() {
-      this.el.addEventListener('model-loaded', e => {
-        const model = e.detail.model, THREE = AFRAME.THREE;
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-        model.position.set(-center.x, -box.min.y, -center.z);
-        this.el.object3D.scale.setScalar(1.8 / Math.max(size.x, size.y, size.z));
-        if (model.animations.length) {
-          this.mixer = new THREE.AnimationMixer(model);
-          this.mixer.clipAction(model.animations[0]).play();
-        }
-      });
-    },
-    tick(time, dt) { 
-      if (this.mixer) this.mixer.update(dt / 1000); 
-    }
-  });
-</script>
 </head>
 
 <body class="select-none">
 
-  <!-- TOP MODE SWITCHER NAVBAR -->
-  <nav class="fixed top-3 left-1/2 -translate-x-1/2 z-50 glass rounded-full p-1.5 flex gap-2 border border-emerald-500/30">
-    <button id="nav-3d" onclick="switchTab('3d')" class="btn active px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2">
-      <span>🎨</span> 3D Portfolio
-    </button>
-    <button id="nav-ar" onclick="switchTab('ar')" class="btn px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2">
-      <span>📷</span> AR Camera Mode
-    </button>
-  </nav>
-
-  <!-- TAB 1: 3D PORTFOLIO -->
-  <div id="tab-3d" class="tab-content active">
+    <!-- 3D PORTFOLIO -->
     <div id="canvas-container"></div>
     <div class="scanlines"></div>
     <div class="vignette"></div>
 
-    <div class="fixed inset-0 z-10 pointer-events-none p-3 md:p-5 pt-16">
+    <div class="fixed inset-0 z-10 pointer-events-none p-3 md:p-5">
         <!-- LEFT UI -->
         <aside class="sidebar pointer-events-auto w-[350px] h-full flex flex-col gap-3">
             <header class="glass rounded-2xl p-5 relative overflow-hidden">
@@ -260,7 +218,7 @@
         </aside>
 
         <!-- RIGHT HUD -->
-        <div class="right-panel pointer-events-none absolute right-5 top-20 hidden lg:block">
+        <div class="right-panel pointer-events-none absolute right-5 top-5 hidden lg:block">
             <div class="glass rounded-2xl p-4 w-64">
                 <div class="tiny mono text-emerald-400">CURRENT UNIT</div>
                 <div id="hud-name" class="text-xl font-bold text-white mt-1">PORK TANK</div>
@@ -293,44 +251,6 @@
         <span id="loading-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         <span id="loading-text" class="tiny mono text-emerald-300">SCENE READY</span>
     </div>
-  </div>
-
-  <!-- TAB 2: AR CAMERA MODE -->
-  <div id="tab-ar" class="tab-content">
-    <a-scene 
-      embedded 
-      vr-mode-ui="enabled: false" 
-      loading-screen="enabled: false"
-      arjs="sourceType: webcam; debugUIEnabled: false; cameraParametersUrl: https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.8/data/data/camera_para.dat;">
-
-      <!-- Custom Pattern Marker -->
-      <a-marker type="pattern" url="pattern-ดีไซน์ที่ยังไม่ได้ตั้งชื่อ (3).patt" smooth="true">
-        <a-entity gltf-model="https://sibsansuk.github.io/epona.glb" fit></a-entity>
-      </a-marker>
-
-      <a-entity camera></a-entity>
-    </a-scene>
-
-    <!-- Credit Footer -->
-    <p style="position:fixed; bottom:8px; left:10px; margin:0; padding:4px 8px; border-radius:6px;
-     background:#000a; color:#fff; font:12px system-ui, Tahoma, sans-serif; z-index: 40;">
-      <a href="https://aitutorialcourse.github.io/tracker.png" target="_blank" style="color:#9ef">marker image</a>
-      · Epona by
-      <a href="https://sketchfab.com/3d-models/epona-1f1da2940b0d4ddcb4beae1680c47918" target="_blank" style="color:#9ef">Vasian-Digital3D</a>
-      · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" style="color:#9ef">CC BY 4.0</a>
-    </p>
-  </div>
-
-<!-- TAB SWITCHING LOGIC -->
-<script>
-  function switchTab(tab) {
-    document.getElementById('tab-3d').classList.toggle('active', tab === '3d');
-    document.getElementById('tab-ar').classList.toggle('active', tab === 'ar');
-    
-    document.getElementById('nav-3d').classList.toggle('active', tab === '3d');
-    document.getElementById('nav-ar').classList.toggle('active', tab === 'ar');
-  }
-</script>
 
 <!-- THREE.JS LOGIC -->
 <script type="module">
