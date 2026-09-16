@@ -14,6 +14,7 @@
   <a-assets>
     <a-asset-item id="glassesModel" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/face-tracking/assets/glasses/scene.gltf"></a-asset-item>
     <a-asset-item id="headModel" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/face-tracking/assets/sparkar/headOccluder.glb"></a-asset-item>
+     <a-asset-item id="Mask" src="https://erp4952.github.io/russian_gp-5__gas_mask_-_filter_damaged.glb"></a-asset-item>
   </a-assets>
 
 
@@ -35,6 +36,12 @@
   </a-entity>
   <a-entity mindar-face-target="anchorIndex: 17">
     <a-box position="0 0 0" scale="0.1 0.1 0.1" color="red"></a-box>
+  </a-entity>
+  <a-entity mindar-face-target="anchorIndex: 168">
+        <a-gltf-model 
+        rotation="0 0 0" position="0 0 0" scale="0.008 0.008 0.008" 
+        src="#Mask">
+    </a-gltf-model>
   </a-entity>
 
 
