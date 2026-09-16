@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden;}
+    a-scene {width: 100%;  height: 100%;}
+  </style>
+</head>
+
+<body>
+<a-scene mindar-face embedded vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+  <a-assets>
+    <a-asset-item id="glassesModel" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/face-tracking/assets/glasses/scene.gltf"></a-asset-item>
+    <a-asset-item id="headModel" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/face-tracking/assets/sparkar/headOccluder.glb"></a-asset-item>
+  </a-assets>
+
+
+  <!-- Anchor กับตำแหน่งบนใบหน้า -->
+  <a-entity mindar-face-target="anchorIndex: 386">
+    <a-box position="0 0 0" scale="0.1 0.1 0.1" color="red"></a-box>
+  </a-entity>
+ <a-entity mindar-face-target="anchorIndex: 374">
+    <a-box position="0 0 0" scale="0.1 0.1 0.1" color="red"></a-box>
+  </a-entity>
+ <a-entity mindar-face-target="anchorIndex: 159">
+    <a-box position="0 0 0" scale="0.1 0.1 0.1" color="red"></a-box>
+  </a-entity>
+   <a-entity mindar-face-target="anchorIndex: 145">
+    <a-box position="0 0 0" scale="0.1 0.1 0.1" color="red"></a-box>
+  </a-entity>
+
+
+
+
+
+
+
+  <a-camera active="false" position="0 0 0"> </a-camera>
+
+</a-scene>
+</body>
+</html>
