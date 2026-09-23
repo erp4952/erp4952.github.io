@@ -28,7 +28,7 @@
       const mesh = document.querySelector('#face').getObject3D('mesh');
       mesh.material.dispose();
       mesh.material = new THREE.MeshBasicMaterial({
-        map: texture, transparent: true, opacity: 0.85, side: THREE.DoubleSide
+        map: texture, transparent: true, opacity: 1, side: THREE.DoubleSide
       });
       mesh.frustumCulled = false;
     });
