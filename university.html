@@ -13,27 +13,53 @@
   device-orientation-permission-ui="enabled: false">
 
   <a-assets>
+    <!-- โหลดโมเดล 3D -->
     <a-asset-item id="model0" src="https://erp4952.github.io/Poster_Game.glb"></a-asset-item>
-
+    
+    <!-- เพิ่มไฟล์เสียง: เปลี่ยน URL ให้ตรงกับไฟล์บน GitHub -->
+    <audio id="sound0" src="https://erp4952.github.io/พูดแนะนำสาขา.mp3" preload="auto" loop></audio>
   </a-assets>
 
-  <!-- Target 1 -->
-  <a-entity mindar-image-target="targetIndex: 0">
+  <!-- Target 1 (เพิ่ม id="target0" เพื่อให้ JS เรียกใช้ได้) -->
+  <a-entity id="target0" mindar-image-target="targetIndex: 0">
     <a-gltf-model src="#model0" animation-mixer rotation="90 0 0" scale="0.5 0.5 0.5"></a-gltf-model>
   </a-entity>
 
   <!-- Target 2 -->
   <a-entity mindar-image-target="targetIndex: 1">
-    <a-gltf-model src="#model1" animation-mixer rotation="90 0 0" scale="1 1 1"></a-gltf-model>
+    <!-- ใส่ id โมเดลของคุณ -->
+    <!-- <a-gltf-model src="#model1" animation-mixer rotation="90 0 0" scale="1 1 1"></a-gltf-model> -->
   </a-entity>
 
   <!-- Target 3 -->
   <a-entity mindar-image-target="targetIndex: 2">
-    <a-gltf-model src="#model2" animation-mixer rotation="90 0 0" scale="1 1 1"></a-gltf-model>
+    <!-- ใส่ id โมเดลของคุณ -->
+    <!-- <a-gltf-model src="#model2" animation-mixer rotation="90 0 0" scale="1 1 1"></a-gltf-model> -->
   </a-entity>
 
   <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
 </a-scene>
+
+<script>
+  // สคริปต์ควบคุมการเล่นเสียง
+  document.addEventListener("DOMContentLoaded", function() {
+    const target0 = document.querySelector('#target0');
+    const sound0 = document.querySelector('#sound0');
+
+    // เมื่อกล้องสแกนเจอ Target
+    target0.addEventListener("targetFound", event => {
+      console.log("Target 0 found");
+      sound0.play(); // เริ่มเล่นเสียง
+    });
+
+    // เมื่อ Target หลุดจากกล้อง
+    target0.addEventListener("targetLost", event => {
+      console.log("Target 0 lost");
+      sound0.pause(); // หยุดเสียง
+      sound0.currentTime = 0; // รีเซ็ตเสียงกลับไปจุดเริ่มต้น (ถ้าไม่อยากให้รีเซ็ต ลบบรรทัดนี้ได้ครับ)
+    });
+  });
+</script>
 </body>
 </html>
